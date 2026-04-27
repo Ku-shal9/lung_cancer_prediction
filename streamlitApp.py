@@ -131,7 +131,7 @@ def page_header(tag, title, subtitle):
                   text-transform:uppercase;margin-bottom:6px;">{tag}</div>
       <div style="font-family:'Orbitron',monospace;font-size:1.75rem;font-weight:700;
                   color:#e8f4ff;letter-spacing:.04em;line-height:1.2;">{title}</div>
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:.78rem;
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.92rem;
                   color:rgba(0,245,255,.65);margin-top:8px;letter-spacing:.04em;">{subtitle}</div>
       <div style="height:1px;background:linear-gradient(90deg,rgba(0,245,255,.4),transparent);
                   margin-top:20px;"></div>
@@ -164,8 +164,8 @@ def info_box(text, kind="info"):
     st.markdown(f"""
     <div style="background:{bg};border:1px solid {c}33;border-left:3px solid {c};
                 border-radius:0 8px 8px 0;padding:14px 18px;
-                font-family:'IBM Plex Mono',monospace;font-size:.82rem;
-                color:rgba(210,235,255,.85);margin:12px 0;line-height:1.6;">
+                font-family:'IBM Plex Mono',monospace;font-size:.92rem;
+                color:rgba(210,235,255,.88);margin:12px 0;line-height:1.7;">
       {text}
     </div>
     """, unsafe_allow_html=True)
@@ -298,19 +298,33 @@ with st.sidebar:
 if st.session_state.page == "overview":
     page_header("00 / 07", "PROJECT OVERVIEW", "Concise summary of the study, context, and approach")
 
-    info_box("<b>Overview</b><br>Lung cancer risk assessment is framed as a binary classification problem using demographic, behavioral, and clinical symptom variables. The project builds an interpretable prediction workflow and presents results in an interactive dashboard.", "info")
-
-    info_box("<b>Problem Statement</b><br>Develop a model to predict lung cancer risk from patient data, and evaluate how effectively logistic regression identifies meaningful risk factors for practical early screening support.", "warn")
-
-    info_box("<b>Literature Review</b><br>Prior studies report that interpretable statistical and machine-learning classifiers can support early risk stratification in lung cancer. Logistic regression is consistently highlighted as a reliable, explainable, and cost-effective baseline for clinical-style tabular data.", "success")
-
-    info_box("<b>Solution</b><br>The solution follows a clear pipeline: data preparation and encoding, exploratory/statistical analysis, feature selection, logistic-regression modelling, and performance evaluation; then wraps outcomes in a lightweight Streamlit app for accessible decision support.", "info")
+    st.markdown("""<div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+        color:rgba(0,245,255,.55);text-transform:uppercase;letter-spacing:.12em;
+        margin-bottom:10px;">Overview</div>""", unsafe_allow_html=True)
+    st.image("images/overview.png", use_container_width=True)
 
     section_divider()
-    st.markdown("""<div style="font-family:'IBM Plex Mono',monospace;font-size:.76rem;
-        color:rgba(160,210,240,.72);line-height:1.8;">
-        This page is based on the project report and is intentionally concise for quick review before deep-diving into data, EDA, feature analysis, hypothesis testing, and model evaluation pages.
-    </div>""", unsafe_allow_html=True)
+    st.markdown("""<div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+        color:rgba(0,245,255,.55);text-transform:uppercase;letter-spacing:.12em;
+        margin-bottom:10px;">Problem Statement</div>""", unsafe_allow_html=True)
+    st.image("images/problem.png", use_container_width=True)
+
+    section_divider()
+    st.markdown("""<div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+        color:rgba(0,245,255,.55);text-transform:uppercase;letter-spacing:.12em;
+        margin-bottom:10px;">Literature Review</div>""", unsafe_allow_html=True)
+    lit_left, lit_right = st.columns(2)
+    with lit_left:
+        st.image("images/literature1.png", use_container_width=True)
+    with lit_right:
+        st.image("images/literature2.png", use_container_width=True)
+    section_divider()
+    st.markdown("""<div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+        color:rgba(0,245,255,.55);text-transform:uppercase;letter-spacing:.12em;
+        margin-bottom:10px;">Solution</div>""", unsafe_allow_html=True)
+    st.image("images/solution.png", use_container_width=True)
+
+    section_divider()
 
 # ─────────────────────────────────────────────
 #  PAGE 1 · ORIGINAL DATASET
@@ -413,8 +427,8 @@ elif st.session_state.page == "cleaned":
     c1,c2,c3,c4 = st.columns(4)
     with c1: metric_card("911", "Records After Cleaning", GREEN)
     with c2: metric_card("246", "Duplicates Removed", RED)
-    with c3: metric_card("474", "Cancer Positive", RED, "🔴")
-    with c4: metric_card("437", "Cancer Negative", CYAN, "🔵")
+    with c3: metric_card("474", "Cancer Positive", RED)
+    with c4: metric_card("437", "Cancer Negative", CYAN)
 
     section_divider()
 
@@ -723,8 +737,7 @@ elif st.session_state.page == "feature":
 
     info_box("""<b>Backward Elimination Results (Logistic Regression, p > 0.05):</b><br>
     The following features were <b>dropped</b> due to statistical insignificance:
-    <br>❌ peer_pressure &nbsp;|&nbsp; ❌ gender &nbsp;|&nbsp; ❌ age &nbsp;|&nbsp;
-    ❌ yellow_fingers &nbsp;|&nbsp; ❌ chronic disease &nbsp;|&nbsp; ❌ fatigue<br><br>
+    <br>❌ peer_pressure &nbsp;|&nbsp; ❌ gender &nbsp;|&nbsp; ❌ age &nbsp;|&nbsp; ❌ yellow_fingers &nbsp;|&nbsp; ❌ chronic disease &nbsp;|&nbsp; ❌ fatigue<br><br>
     <b>Retained features for modelling:</b> smoking, anxiety, allergy, wheezing,
     alcohol consuming, coughing, shortness of breath, swallowing difficulty, chest pain""", "warn")
 
