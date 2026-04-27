@@ -129,9 +129,9 @@ def page_header(tag, title, subtitle):
       <div style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;
                   color:rgba(0,245,255,.5);letter-spacing:.25em;
                   text-transform:uppercase;margin-bottom:6px;">{tag}</div>
-      <div style="font-family:'Orbitron',monospace;font-size:1.9rem;font-weight:700;
+      <div style="font-family:'Orbitron',monospace;font-size:1.75rem;font-weight:700;
                   color:#e8f4ff;letter-spacing:.04em;line-height:1.2;">{title}</div>
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:.82rem;
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.78rem;
                   color:rgba(0,245,255,.65);margin-top:8px;letter-spacing:.04em;">{subtitle}</div>
       <div style="height:1px;background:linear-gradient(90deg,rgba(0,245,255,.4),transparent);
                   margin-top:20px;"></div>
@@ -139,14 +139,14 @@ def page_header(tag, title, subtitle):
     """, unsafe_allow_html=True)
 
 def metric_card(value, label, color=CYAN, icon=""):
-    shadow = color.replace("#", "")
+    icon_html = f'<div style="font-size:1.05rem;margin-bottom:4px;">{icon}</div>' if icon else ""
     st.markdown(f"""
     <div style="background:linear-gradient(135deg,rgba(0,245,255,.04) 0%,rgba(4,8,16,.85) 100%);
                 border:1px solid rgba(0,245,255,.18);border-radius:12px;padding:22px 18px;
                 text-align:center;position:relative;overflow:hidden;">
       <div style="position:absolute;top:0;left:0;right:0;height:2px;
                   background:linear-gradient(90deg,transparent,{color},transparent);"></div>
-      <div style="font-size:1.3rem;margin-bottom:4px;">{icon}</div>
+      {icon_html}
       <div style="font-family:'Orbitron',monospace;font-size:1.85rem;font-weight:700;
                   color:{color};text-shadow:0 0 22px {color}80;">{value}</div>
       <div style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;
@@ -217,12 +217,13 @@ if "page" not in st.session_state:
     st.session_state.page = "original"
 
 NAV = [
-    ("original",  "📁", "Original Dataset"),
-    ("cleaned",   "✨", "Cleaned Dataset"),
-    ("eda",       "📊", "EDA"),
-    ("feature",   "🔬", "Feature Analysis"),
-    ("hypothesis","🧪", "Hypothesis"),
-    ("model",     "🤖", "Model"),
+    ("overview", "Overview"),
+    ("original", "Original Dataset"),
+    ("cleaned", "Cleaned Dataset"),
+    ("eda", "EDA"),
+    ("feature", "Feature Analysis"),
+    ("hypothesis", "Hypothesis"),
+    ("model", "Model"),
 ]
 
 # ─────────────────────────────────────────────
@@ -250,7 +251,7 @@ with st.sidebar:
                 padding:0 16px;margin-bottom:8px;">Navigation</div>
     """, unsafe_allow_html=True)
 
-    for key, icon, label in NAV:
+    for key, label in NAV:
         is_active = st.session_state.page == key
         btn_style = ""
         if is_active:
@@ -267,7 +268,6 @@ with st.sidebar:
                             background:rgba(0,245,255,.09);border:1px solid rgba(0,245,255,.42);
                             border-radius:8px;margin:3px 0;cursor:default;
                             box-shadow:0 0 20px rgba(0,245,255,.12);">
-                  <span style="font-size:1rem;">{icon}</span>
                   <span style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;
                                letter-spacing:.08em;text-transform:uppercase;
                                color:#00f5ff;">{label}</span>
@@ -276,7 +276,7 @@ with st.sidebar:
                 </div>
                 """, unsafe_allow_html=True)
             else:
-                if st.button(f"{icon}  {label}", key=f"nav_{key}"):
+                if st.button(label, key=f"nav_{key}"):
                     st.session_state.page = key
                     st.rerun()
 
@@ -293,16 +293,36 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
+#  PAGE 0 · OVERVIEW
+# ─────────────────────────────────────────────
+if st.session_state.page == "overview":
+    page_header("00 / 07", "PROJECT OVERVIEW", "Concise summary of the study, context, and approach")
+
+    info_box("<b>Overview</b><br>Lung cancer risk assessment is framed as a binary classification problem using demographic, behavioral, and clinical symptom variables. The project builds an interpretable prediction workflow and presents results in an interactive dashboard.", "info")
+
+    info_box("<b>Problem Statement</b><br>Develop a model to predict lung cancer risk from patient data, and evaluate how effectively logistic regression identifies meaningful risk factors for practical early screening support.", "warn")
+
+    info_box("<b>Literature Review</b><br>Prior studies report that interpretable statistical and machine-learning classifiers can support early risk stratification in lung cancer. Logistic regression is consistently highlighted as a reliable, explainable, and cost-effective baseline for clinical-style tabular data.", "success")
+
+    info_box("<b>Solution</b><br>The solution follows a clear pipeline: data preparation and encoding, exploratory/statistical analysis, feature selection, logistic-regression modelling, and performance evaluation; then wraps outcomes in a lightweight Streamlit app for accessible decision support.", "info")
+
+    section_divider()
+    st.markdown("""<div style="font-family:'IBM Plex Mono',monospace;font-size:.76rem;
+        color:rgba(160,210,240,.72);line-height:1.8;">
+        This page is based on the project report and is intentionally concise for quick review before deep-diving into data, EDA, feature analysis, hypothesis testing, and model evaluation pages.
+    </div>""", unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────
 #  PAGE 1 · ORIGINAL DATASET
 # ─────────────────────────────────────────────
-if st.session_state.page == "original":
-    page_header("01 / 06", "ORIGINAL DATASET", "Raw data as collected — unprocessed, unfiltered, unaltered")
+elif st.session_state.page == "original":
+    page_header("01 / 07", "ORIGINAL DATASET", "Raw data as collected — unprocessed, unfiltered, unaltered")
 
     c1,c2,c3,c4 = st.columns(4)
-    with c1: metric_card("1,157", "Total Records", CYAN, "📋")
-    with c2: metric_card("16", "Features", PURPLE, "🧮")
-    with c3: metric_card("246", "Duplicates", ORANGE, "⚠️")
-    with c4: metric_card("0", "Missing Values", GREEN, "✅")
+    with c1: metric_card("1,157", "Total Records", CYAN)
+    with c2: metric_card("16", "Features", PURPLE)
+    with c3: metric_card("246", "Duplicates", ORANGE)
+    with c4: metric_card("0", "Missing Values", GREEN)
 
     section_divider()
 
@@ -324,7 +344,7 @@ if st.session_state.page == "original":
         fig.add_annotation(text=f"<b>1157</b><br><span style='font-size:10px'>Records</span>",
                            x=.5,y=.5,font=dict(family='Orbitron',size=16,color='#00f5ff'),
                            showarrow=False)
-        fig = apply_theme(fig, "🎯 Target Distribution", 380)
+        fig = apply_theme(fig, "Target Distribution", 380)
         st.plotly_chart(fig, use_container_width=True)
 
     with c_right:
@@ -341,7 +361,7 @@ if st.session_state.page == "original":
             textfont=dict(family='IBM Plex Mono',size=12,color='#e8f4ff'),
             hovertemplate='%{x}: %{y}<extra></extra>'
         )])
-        fig = apply_theme(fig, "👥 Gender Distribution", 380)
+        fig = apply_theme(fig, "Gender Distribution", 380)
         fig.update_layout(showlegend=False)
         st.plotly_chart(fig, use_container_width=True)
 
@@ -361,17 +381,17 @@ if st.session_state.page == "original":
     fig.add_vline(x=df_orig_copy['AGE'].mean(), line_dash="dash",
                   line_color=ORANGE, annotation_text=f"Mean: {df_orig_copy['AGE'].mean():.1f}",
                   annotation_font=dict(family='IBM Plex Mono', color=ORANGE, size=11))
-    fig = apply_theme(fig, "📈 Age Distribution of Patients", 320)
+    fig = apply_theme(fig, "Age Distribution of Patients", 320)
     st.plotly_chart(fig, use_container_width=True)
 
     section_divider()
 
-    info_box("📌 The dataset contains <b>246 duplicate records</b> which create class imbalance bias. Before deduplication, cancer-positive cases accounted for ~44% of data. After cleanup this rises to ~52%, reflecting a more realistic distribution.", "warn")
+    info_box("The dataset contains <b>246 duplicate records</b> which create class imbalance bias. Before deduplication, cancer-positive cases accounted for ~44% of data. After cleanup this rises to ~52%, reflecting a more realistic distribution.", "warn")
 
     # Data table
     st.markdown("""<div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;
         color:rgba(0,245,255,.6);text-transform:uppercase;letter-spacing:.12em;
-        margin-bottom:10px;">📄 Raw Data Preview</div>""", unsafe_allow_html=True)
+        margin-bottom:10px;">Raw Data Preview</div>""", unsafe_allow_html=True)
     st.dataframe(
         df_orig.head(50).style
             .set_properties(**{'background-color':'rgba(5,12,25,.7)',
@@ -387,12 +407,12 @@ if st.session_state.page == "original":
 #  PAGE 2 · CLEANED DATASET
 # ─────────────────────────────────────────────
 elif st.session_state.page == "cleaned":
-    page_header("02 / 06", "CLEANED DATASET",
+    page_header("02 / 07", "CLEANED DATASET",
                 "After deduplication, encoding & standardisation")
 
     c1,c2,c3,c4 = st.columns(4)
-    with c1: metric_card("911", "Records After Cleaning", GREEN, "✅")
-    with c2: metric_card("246", "Duplicates Removed", RED, "🗑️")
+    with c1: metric_card("911", "Records After Cleaning", GREEN)
+    with c2: metric_card("246", "Duplicates Removed", RED)
     with c3: metric_card("474", "Cancer Positive", RED, "🔴")
     with c4: metric_card("437", "Cancer Negative", CYAN, "🔵")
 
@@ -415,7 +435,7 @@ elif st.session_state.page == "cleaned":
                              marker_color=GREEN,opacity=.85,
                              text=[f"{v:.1f}%" for v in after],textposition='outside',
                              textfont=dict(family='IBM Plex Mono',size=10,color='#e8f4ff')))
-        fig = apply_theme(fig, "⚖️ Class Balance: Before vs After", 360)
+        fig = apply_theme(fig, "Class Balance: Before vs After", 360)
         fig.update_layout(barmode='group', bargap=.15, bargroupgap=.05)
         st.plotly_chart(fig, use_container_width=True)
 
@@ -445,7 +465,7 @@ elif st.session_state.page == "cleaned":
                 height=30
             )
         )])
-        fig = apply_theme(fig, "🔢 Binary Encoding Map", 360)
+        fig = apply_theme(fig, "Binary Encoding Map", 360)
         st.plotly_chart(fig, use_container_width=True)
 
     section_divider()
@@ -463,17 +483,17 @@ elif st.session_state.page == "cleaned":
         hovertemplate='%{x} vs %{y}<br>r = %{z:.3f}<extra></extra>',
         zmin=-1, zmax=1
     ))
-    fig = apply_theme(fig, "🔥 Correlation Heatmap — Cleaned Features", 520)
+    fig = apply_theme(fig, "Correlation Heatmap — Cleaned Features", 520)
     fig.update_layout(margin=dict(l=120,r=20,t=50,b=120))
     st.plotly_chart(fig, use_container_width=True)
 
     section_divider()
 
-    info_box("✅ All binary symptoms (1=No, 2=Yes) have been re-encoded to (0, 1). Gender encoded as M→1, F→0. Target variable YES→1, NO→0. Column names standardised to lowercase.", "success")
+    info_box("All binary symptoms (1=No, 2=Yes) have been re-encoded to (0, 1). Gender encoded as M→1, F→0. Target variable YES→1, NO→0. Column names standardised to lowercase.", "success")
 
     st.markdown("""<div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;
         color:rgba(0,245,255,.6);text-transform:uppercase;letter-spacing:.12em;
-        margin-bottom:10px;">📄 Cleaned Data Preview</div>""", unsafe_allow_html=True)
+        margin-bottom:10px;">Cleaned Data Preview</div>""", unsafe_allow_html=True)
     st.dataframe(
         df_clean.head(50).style
             .set_properties(**{'background-color':'rgba(5,12,25,.7)',
@@ -489,14 +509,14 @@ elif st.session_state.page == "cleaned":
 #  PAGE 3 · EDA
 # ─────────────────────────────────────────────
 elif st.session_state.page == "eda":
-    page_header("03 / 06", "EXPLORATORY DATA ANALYSIS",
+    page_header("03 / 07", "EXPLORATORY DATA ANALYSIS",
                 "Uncovering patterns, distributions & relationships in the data")
 
     c1,c2,c3,c4 = st.columns(4)
-    with c1: metric_card("52.5", "Mean Age", CYAN, "👤")
-    with c2: metric_card("16.7", "Age Std Dev", PURPLE, "📐")
-    with c3: metric_card("87", "Max Age", ORANGE, "📅")
-    with c4: metric_card("20", "Min Age", GREEN, "📅")
+    with c1: metric_card("52.5", "Mean Age", CYAN)
+    with c2: metric_card("16.7", "Age Std Dev", PURPLE)
+    with c3: metric_card("87", "Max Age", ORANGE)
+    with c4: metric_card("20", "Min Age", GREEN)
 
     section_divider()
 
@@ -511,7 +531,7 @@ elif st.session_state.page == "eda":
                 marker_color=color, opacity=.65,
                 hovertemplate=f'{label}<br>Age: %{{x}}<br>Count: %{{y}}<extra></extra>'
             ))
-        fig = apply_theme(fig, "📊 Age Distribution by Cancer Status", 380)
+        fig = apply_theme(fig, "Age Distribution by Cancer Status", 380)
         fig.update_layout(barmode='overlay')
         st.plotly_chart(fig, use_container_width=True)
 
@@ -526,7 +546,7 @@ elif st.session_state.page == "eda":
                      barmode='group',
                      labels={'age_group':'Age Group','count':'Patients'},
                      hover_data=['count'])
-        fig = apply_theme(fig, "📊 Cancer Cases by Age Group", 380)
+        fig = apply_theme(fig, "Cancer Cases by Age Group", 380)
         st.plotly_chart(fig, use_container_width=True)
 
     section_divider()
@@ -550,7 +570,7 @@ elif st.session_state.page == "eda":
         textfont=dict(family='IBM Plex Mono',size=10,color='#e8f4ff'),
         hovertemplate='%{y}: %{x:.1f}%<extra></extra>'
     ))
-    fig = apply_theme(fig, "🔍 Symptom Prevalence in Dataset (%)", 440)
+    fig = apply_theme(fig, "Symptom Prevalence in Dataset (%)", 440)
     fig.update_layout(margin=dict(l=160,r=60,t=50,b=20))
     st.plotly_chart(fig, use_container_width=True)
 
@@ -559,7 +579,7 @@ elif st.session_state.page == "eda":
     # Symptom vs cancer heatmap
     st.markdown("""<div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:600;
         color:#e8f4ff;letter-spacing:.06em;margin-bottom:16px;">
-        🔥 Symptom Prevalence by Cancer Status</div>""", unsafe_allow_html=True)
+        Symptom Prevalence by Cancer Status</div>""", unsafe_allow_html=True)
 
     cols = [c for c in df_clean.columns if c != 'lung_cancer']
     heat_data = []
@@ -583,7 +603,7 @@ elif st.session_state.page == "eda":
             ),
             hovertemplate='%{y}<br>Δ Prevalence: %{x:.3f}<extra></extra>'
         ))
-        fig = apply_theme(fig,"📈 Feature: Positive - Negative Rate", 420)
+        fig = apply_theme(fig,"Feature: Positive - Negative Rate", 420)
         fig.update_layout(margin=dict(l=160,r=20,t=50,b=20))
         st.plotly_chart(fig, use_container_width=True)
 
@@ -593,19 +613,19 @@ elif st.session_state.page == "eda":
                              marker_color=RED,opacity=.8))
         fig.add_trace(go.Bar(name='Cancer -',x=heat_df['Feature'],y=heat_df['Negative'],
                              marker_color=CYAN,opacity=.8))
-        fig = apply_theme(fig,"📊 Feature Rate: +ve vs -ve Patients", 420)
+        fig = apply_theme(fig,"Feature Rate: Positive vs Negative Patients", 420)
         fig.update_layout(barmode='group',xaxis_tickangle=-40,
                           xaxis=dict(tickfont=dict(size=9)))
         st.plotly_chart(fig, use_container_width=True)
 
     section_divider()
-    info_box("🔎 <b>Key EDA Insights:</b> Patients aged 50-70 show highest cancer incidence. Symptoms like chest pain, shortness of breath, and swallowing difficulty show dramatically higher rates in cancer-positive patients. Gender shows minimal differentiation across classes.", "info")
+    info_box("<b>Key EDA Insights:</b> Patients aged 50-70 show highest cancer incidence. Symptoms like chest pain, shortness of breath, and swallowing difficulty show dramatically higher rates in cancer-positive patients. Gender shows minimal differentiation across classes.", "info")
 
 # ─────────────────────────────────────────────
 #  PAGE 4 · FEATURE ANALYSIS
 # ─────────────────────────────────────────────
 elif st.session_state.page == "feature":
-    page_header("04 / 06", "FEATURE ANALYSIS",
+    page_header("04 / 07", "FEATURE ANALYSIS",
                 "Chi-Square selection · Logistic regression · Backward elimination")
 
     # Chi-2 data
@@ -652,7 +672,7 @@ elif st.session_state.page == "feature":
         ))
         fig.add_vline(x=chi_df['Chi2 Score'].quantile(.5),line_dash='dash',
                       line_color=ORANGE, opacity=.5)
-        fig = apply_theme(fig, "📊 Chi-Square Feature Importance", 480)
+        fig = apply_theme(fig, "Chi-Square Feature Importance", 480)
         fig.update_layout(margin=dict(l=170,r=80,t=50,b=20))
         st.plotly_chart(fig, use_container_width=True)
 
@@ -695,7 +715,7 @@ elif st.session_state.page == "feature":
         hovertemplate='%{x}<br>r = %{y:.4f}<extra></extra>'
     ))
     fig.add_hline(y=0, line_color='rgba(255,255,255,.2)')
-    fig = apply_theme(fig, "📈 Pearson Correlation with Lung Cancer Target", 360)
+    fig = apply_theme(fig, "Pearson Correlation with Lung Cancer Target", 360)
     fig.update_layout(xaxis_tickangle=-40)
     st.plotly_chart(fig, use_container_width=True)
 
@@ -718,7 +738,7 @@ elif st.session_state.page == "feature":
 #  PAGE 5 · HYPOTHESIS
 # ─────────────────────────────────────────────
 elif st.session_state.page == "hypothesis":
-    page_header("05 / 06", "HYPOTHESIS TESTING",
+    page_header("05 / 07", "HYPOTHESIS TESTING",
                 "Statistical validation · Logistic regression · Class balance analysis")
 
     # Hypothesis box
@@ -777,7 +797,7 @@ elif st.session_state.page == "hypothesis":
             text=[f"{v:.1f}%" for v in sig_vals], textposition='outside',
             textfont=dict(family='IBM Plex Mono',size=9,color='#e8f4ff')
         ))
-        fig = apply_theme(fig, "✅ Significant Features (Retained)", 400)
+        fig = apply_theme(fig, "Significant Features (Retained)", 400)
         fig.update_layout(showlegend=False, xaxis_tickangle=-35,
                           xaxis=dict(tickfont=dict(size=9)))
         st.plotly_chart(fig, use_container_width=True)
@@ -800,7 +820,7 @@ elif st.session_state.page == "hypothesis":
             text=[f"{v:.1f}%" for v in other_vals], textposition='outside',
             textfont=dict(family='IBM Plex Mono',size=9,color='#e8f4ff')
         ))
-        fig = apply_theme(fig, "❌ Insignificant Features (Dropped)", 400)
+        fig = apply_theme(fig, "Insignificant Features (Dropped)", 400)
         fig.update_layout(showlegend=False, xaxis_tickangle=-35)
         st.plotly_chart(fig, use_container_width=True)
 
@@ -821,7 +841,7 @@ elif st.session_state.page == "hypothesis":
         )])
         fig.add_annotation(text="<b>52%/48%</b>",x=.5,y=.5,
                            font=dict(family='Orbitron',size=14,color=CYAN),showarrow=False)
-        fig = apply_theme(fig, "⚖️ Balanced Class Distribution (Post-Cleaning)", 380)
+        fig = apply_theme(fig, "Balanced Class Distribution (Post-Cleaning)", 380)
         st.plotly_chart(fig, use_container_width=True)
 
     with c2:
@@ -841,7 +861,7 @@ elif st.session_state.page == "hypothesis":
         fig.add_hline(y=-np.log10(0.05), line_dash='dash', line_color=ORANGE,
                       annotation_text="p = 0.05 threshold",
                       annotation_font=dict(family='IBM Plex Mono',color=ORANGE,size=10))
-        fig = apply_theme(fig, "📊 Statistical Significance (-log₁₀ p-value)", 380)
+        fig = apply_theme(fig, "Statistical Significance (-log10 p-value)", 380)
         fig.update_layout(xaxis_tickangle=-35, xaxis=dict(tickfont=dict(size=9)))
         st.plotly_chart(fig, use_container_width=True)
 
@@ -856,7 +876,7 @@ elif st.session_state.page == "hypothesis":
 #  PAGE 6 · MODEL
 # ─────────────────────────────────────────────
 elif st.session_state.page == "model":
-    page_header("06 / 06", "MODEL — LOGISTIC REGRESSION",
+    page_header("06 / 07", "MODEL — LOGISTIC REGRESSION",
                 "Trained on 9 features · StandardScaler pipeline · 70/30 split")
 
     acc = accuracy_score(y_test,y_pred)
@@ -867,11 +887,11 @@ elif st.session_state.page == "model":
     cm  = confusion_matrix(y_test,y_pred)
 
     c1,c2,c3,c4,c5 = st.columns(5)
-    with c1: metric_card(f"{acc*100:.2f}%", "Accuracy", GREEN, "🎯")
-    with c2: metric_card(f"{prec*100:.2f}%", "Precision", CYAN, "🔍")
-    with c3: metric_card(f"{rec*100:.2f}%", "Recall", ORANGE, "📡")
-    with c4: metric_card(f"{f1s*100:.2f}%", "F1-Score", PURPLE, "⚡")
-    with c5: metric_card(f"{auc:.4f}", "ROC-AUC", RED, "📈")
+    with c1: metric_card(f"{acc*100:.2f}%", "Accuracy", GREEN)
+    with c2: metric_card(f"{prec*100:.2f}%", "Precision", CYAN)
+    with c3: metric_card(f"{rec*100:.2f}%", "Recall", ORANGE)
+    with c4: metric_card(f"{f1s*100:.2f}%", "F1-Score", PURPLE)
+    with c5: metric_card(f"{auc:.4f}", "ROC-AUC", RED)
 
     section_divider()
 
@@ -902,7 +922,7 @@ elif st.session_state.page == "model":
         fig.add_annotation(x='Predicted Positive',y='Actual Positive',
                            text="TP",showarrow=False,
                            font=dict(family='IBM Plex Mono',size=10,color=GREEN),yshift=-22)
-        fig = apply_theme(fig, "🔲 Confusion Matrix", 400)
+        fig = apply_theme(fig, "Confusion Matrix", 400)
         st.plotly_chart(fig, use_container_width=True)
 
     with c_right:
@@ -923,7 +943,7 @@ elif st.session_state.page == "model":
             fillcolor='rgba(0,245,255,.06)',
             hovertemplate='FPR: %{x:.3f}<br>TPR: %{y:.3f}<extra></extra>'
         ))
-        fig = apply_theme(fig, f"📈 ROC Curve  |  AUC = {auc:.4f}", 400)
+        fig = apply_theme(fig, f"ROC Curve | AUC = {auc:.4f}", 400)
         fig.update_layout(
             xaxis_title="False Positive Rate",
             yaxis_title="True Positive Rate",
@@ -953,7 +973,7 @@ elif st.session_state.page == "model":
     fig.add_hline(y=90,line_dash='dot',line_color='rgba(255,255,255,.2)',
                   annotation_text="90% threshold",
                   annotation_font=dict(family='IBM Plex Mono',color='rgba(255,255,255,.4)',size=10))
-    fig = apply_theme(fig, "🏆 Complete Model Performance Overview", 360)
+    fig = apply_theme(fig, "Complete Model Performance Overview", 360)
     fig.update_layout(showlegend=False, yaxis=dict(range=[0,110]))
     st.plotly_chart(fig, use_container_width=True)
 
@@ -962,10 +982,10 @@ elif st.session_state.page == "model":
     # Confusion matrix breakdown
     tn,fp,fn,tp = cm.ravel()
     c1,c2,c3,c4 = st.columns(4)
-    with c1: metric_card(str(tp), "True Positives", GREEN, "✅")
-    with c2: metric_card(str(tn), "True Negatives", CYAN, "✅")
-    with c3: metric_card(str(fp), "False Positives", ORANGE, "⚠️")
-    with c4: metric_card(str(fn), "False Negatives", RED, "❌")
+    with c1: metric_card(str(tp), "True Positives", GREEN)
+    with c2: metric_card(str(tn), "True Negatives", CYAN)
+    with c3: metric_card(str(fp), "False Positives", ORANGE)
+    with c4: metric_card(str(fn), "False Negatives", RED)
 
     section_divider()
 
@@ -973,7 +993,7 @@ elif st.session_state.page == "model":
     st.markdown(f"""
     <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;
                 color:#e8f4ff;letter-spacing:.08em;margin-bottom:6px;">
-        🤖 LIVE PREDICTION TOOL
+        LIVE PREDICTION TOOL
     </div>
     <div style="font-family:'IBM Plex Mono',monospace;font-size:.8rem;
                 color:rgba(0,245,255,.6);margin-bottom:24px;">
@@ -982,15 +1002,15 @@ elif st.session_state.page == "model":
     """, unsafe_allow_html=True)
 
     labels_map = {
-        'smoking':              '🚬 Smoking',
-        'anxiety':              '😰 Anxiety',
-        'allergy':              '🤧 Allergy',
-        'wheezing':             '💨 Wheezing',
-        'alcohol consuming':    '🍺 Alcohol Consuming',
-        'coughing':             '😮‍💨 Coughing',
-        'shortness of breath':  '🫁 Shortness of Breath',
-        'swallowing difficulty':'😣 Swallowing Difficulty',
-        'chest pain':           '💔 Chest Pain',
+        'smoking':              'Smoking',
+        'anxiety':              'Anxiety',
+        'allergy':              'Allergy',
+        'wheezing':             'Wheezing',
+        'alcohol consuming':    'Alcohol Consuming',
+        'coughing':             'Coughing',
+        'shortness of breath':  'Shortness of Breath',
+        'swallowing difficulty':'Swallowing Difficulty',
+        'chest pain':           'Chest Pain',
     }
 
     user_input = {}
@@ -1004,7 +1024,7 @@ elif st.session_state.page == "model":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    if st.button("🔍  RUN PREDICTION", key="predict_btn"):
+    if st.button("RUN PREDICTION", key="predict_btn"):
         input_df = pd.DataFrame([user_input])
         prediction = pipeline.predict(input_df)[0]
         probability = pipeline.predict_proba(input_df)[0]
