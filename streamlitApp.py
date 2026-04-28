@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import statsmodels.api as sm
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
@@ -206,6 +207,14 @@ def train_model(df):
     y_pred = pipe.predict(X_test)
     y_prob = pipe.predict_proba(X_test)[:,1]
     return pipe, X_test, y_test, y_pred, y_prob, features
+
+@st.cache_resource
+def fit_statsmodels_logit(df):
+    X = df.drop(columns=['lung_cancer'])
+    y = df['lung_cancer']
+    X = sm.add_constant(X, has_constant='add')
+    model = sm.Logit(y, X)
+    return model.fit(disp=0)
 
 df_orig, df_clean = load_data()
 pipeline, X_test, y_test, y_pred, y_prob, MODEL_FEATURES = train_model(df_clean)
@@ -792,6 +801,89 @@ elif st.session_state.page == "hypothesis":
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("""<div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:600;
+        color:#e8f4ff;letter-spacing:.06em;margin-bottom:14px;">
+        Statsmodels Logistic Regression Output</div>""", unsafe_allow_html=True)
+
+    try:
+        sm_result = fit_statsmodels_logit(df_clean)
+        st.markdown(f"""
+        <div style="background:rgba(0,245,255,.08);border:1px solid rgba(0,245,255,.35);
+                    border-radius:10px;padding:14px 16px;margin-bottom:14px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;
+                      color:rgba(0,245,255,.75);letter-spacing:.12em;text-transform:uppercase;
+                      margin-bottom:8px;">Model Fit Statistics</div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;
+                      font-family:'IBM Plex Mono',monospace;font-size:.82rem;color:#cce8ff;">
+            <div><b>Pseudo R²:</b> {sm_result.prsquared:.4f}</div>
+            <div><b>Log-Likelihood:</b> {sm_result.llf:.4f}</div>
+            <div><b>LL-Null:</b> {sm_result.llnull:.4f}</div>
+            <div><b>LLR p-value:</b> {sm_result.llr_pvalue:.4e}</div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        coef_df = pd.DataFrame({
+            'Feature': sm_result.params.index,
+            'Coefficient': sm_result.params.values,
+            'P-Value': sm_result.pvalues.values,
+            'Odds Ratio': np.exp(sm_result.params.values)
+        })
+        coef_df['Feature'] = coef_df['Feature'].replace({'const': 'Intercept'})
+        coef_df = coef_df.sort_values('P-Value')
+
+        def color_predictor_rows(row):
+            pv = row['P-Value']
+            if pv < 0.001:
+                bg = 'rgba(0,255,153,.18)'   # light green (strong)
+            elif pv < 0.05:
+                bg = 'rgba(255,235,120,.22)' # light yellow (medium)
+            else:
+                bg = 'rgba(255,58,92,.22)'   # light red (insignificant)
+            return [f'background-color: {bg}; color: #e8f4ff'] * len(row)
+
+        st.dataframe(
+            coef_df.style.format({
+                'Coefficient': '{:.4f}',
+                'P-Value': '{:.4e}',
+                'Odds Ratio': '{:.4f}',
+            }).apply(color_predictor_rows, axis=1).set_properties(**{
+                'color': '#cce8ff',
+                'font-family': 'IBM Plex Mono',
+                'font-size': '11px'
+            }),
+            use_container_width=True,
+            height=320
+        )
+
+        st.markdown(f"""
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:rgba(210,235,255,.82);
+                    margin-top:10px;margin-bottom:12px;line-height:1.7;">
+          <span style="display:inline-block;padding:2px 8px;border-radius:6px;
+                       background:rgba(0,255,153,.18);border:1px solid rgba(0,255,153,.35);">
+            Strong Predictor: p &lt; 0.001
+          </span>
+          &nbsp;
+          <span style="display:inline-block;padding:2px 8px;border-radius:6px;
+                       background:rgba(255,235,120,.22);border:1px solid rgba(255,235,120,.45);">
+            Medium Predictor: 0.001 ≤ p &lt; 0.05
+          </span>
+          &nbsp;
+          <span style="display:inline-block;padding:2px 8px;border-radius:6px;
+                       background:rgba(255,58,92,.22);border:1px solid rgba(255,58,92,.45);">
+            Insignificant: p ≥ 0.05
+          </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        with st.expander("View full model summary", expanded=False):
+            st.code(sm_result.summary().as_text(), language="text")
+        st.markdown("<div style='margin-bottom:12px;'></div>", unsafe_allow_html=True)
+    except Exception as e:
+        info_box(f"Unable to display statsmodels output: {e}", "warn")
+
+    section_divider()
+
     c_left, c_right = st.columns(2)
 
     with c_left:
@@ -858,25 +950,31 @@ elif st.session_state.page == "hypothesis":
         st.plotly_chart(fig, use_container_width=True)
 
     with c2:
-        # Logistic significance summary
-        feat_names = ['Smoking','Anxiety','Allergy','Wheezing','Coughing',
-                      'Shortness of Breath','Swallowing Diff.','Chest Pain']
-        p_mock = [0.0001, 0.032, 0.048, 0.019, 0.0003, 0.0001, 0.0001, 0.0001]
-        colors_p = [GREEN if p < 0.05 else RED for p in p_mock]
-        fig = go.Figure(go.Bar(
-            x=feat_names, y=[-np.log10(p) for p in p_mock],
-            marker=dict(color=colors_p,line=dict(color='rgba(0,0,0,0)',width=0)),
-            text=[f"p={p:.4f}" for p in p_mock],
-            textposition='outside',
-            textfont=dict(family='IBM Plex Mono',size=9,color='#e8f4ff'),
-            hovertemplate='%{x}<br>-log₁₀(p): %{y:.2f}<extra></extra>'
-        ))
-        fig.add_hline(y=-np.log10(0.05), line_dash='dash', line_color=ORANGE,
-                      annotation_text="p = 0.05 threshold",
-                      annotation_font=dict(family='IBM Plex Mono',color=ORANGE,size=10))
-        fig = apply_theme(fig, "Statistical Significance (-log10 p-value)", 380)
-        fig.update_layout(xaxis_tickangle=-35, xaxis=dict(tickfont=dict(size=9)))
-        st.plotly_chart(fig, use_container_width=True)
+        # Logistic significance summary (from statsmodels output)
+        try:
+            sm_result = fit_statsmodels_logit(df_clean)
+            pvals = sm_result.pvalues.drop('const', errors='ignore').sort_values()
+            pvals_for_plot = pvals.head(8)
+            feat_names = [f.title() for f in pvals_for_plot.index]
+            colors_p = [GREEN if p < 0.05 else RED for p in pvals_for_plot.values]
+
+            fig = go.Figure(go.Bar(
+                x=feat_names,
+                y=[-np.log10(max(p, 1e-16)) for p in pvals_for_plot.values],
+                marker=dict(color=colors_p, line=dict(color='rgba(0,0,0,0)', width=0)),
+                text=[f"p={p:.4g}" for p in pvals_for_plot.values],
+                textposition='outside',
+                textfont=dict(family='IBM Plex Mono', size=9, color='#e8f4ff'),
+                hovertemplate='%{x}<br>-log₁₀(p): %{y:.2f}<extra></extra>'
+            ))
+            fig.add_hline(y=-np.log10(0.05), line_dash='dash', line_color=ORANGE,
+                          annotation_text="p = 0.05 threshold",
+                          annotation_font=dict(family='IBM Plex Mono', color=ORANGE, size=10))
+            fig = apply_theme(fig, "Statistical Significance (-log10 p-value)", 380)
+            fig.update_layout(xaxis_tickangle=-35, xaxis=dict(tickfont=dict(size=9)))
+            st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            info_box(f"Statsmodels logistic regression could not be fit: {e}", "warn")
 
     section_divider()
     info_box("""<b>Conclusion:</b> We <b>REJECT the null hypothesis</b> (H₀).<br><br>
