@@ -35,7 +35,8 @@ st.markdown("""
 /* ── Base ── */
 html, body, .stApp { background:#040c18 !important; }
 .main .block-container { padding: 2rem 2.5rem 4rem; max-width:1400px; }
-#MainMenu,footer,header { visibility:hidden; }
+/* Keep header visible so the sidebar collapse/expand control stays usable */
+#MainMenu, footer { visibility: hidden; }
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
